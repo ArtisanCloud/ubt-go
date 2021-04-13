@@ -1,4 +1,4 @@
-package ubt
+package UBT
 
 import (
 	"os"

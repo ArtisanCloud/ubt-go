@@ -1,4 +1,4 @@
-package ubt
+package UBT
 
 import (
 	"encoding/json"
@@ -48,15 +48,26 @@ type baseInfo struct {
 }
 
 type UBT struct {
+	options     *ClientOptions
+
+	resText     string // ci模式 返回的字符串。
+	err         error  // ci专用
+	messageText string // 要发送的消息内容，这个只是为了测试。
+}
+
+type ClientOptions struct {
 	UBTServer   string
 	AppName     string
 	AppVersion  string
 	systemInfo  map[string]string
 	DebugMode   bool   // debug模式
 	ci          bool   // ci模式
-	resText     string // ci模式 返回的字符串。
-	err         error  // ci专用
-	messageText string // 要发送的消息内容，这个只是为了测试。
+}
+
+func Init(options *ClientOptions) *UBT {
+	return &UBT{
+		options: options,
+	}
 }
 
 func (ubt *UBT) Debug(msg string, extra *ExtraMessage) {
@@ -139,7 +150,7 @@ func (ubt *UBT) SendError(err error, extra *ExtraMessage) {
 }
 
 func (ubt *UBT) base(message *Message, extra *ExtraMessage) {
-	if ubt.ci {
+	if ubt.options.ci {
 		ubt.err = nil
 	}
 
@@ -150,8 +161,8 @@ func (ubt *UBT) base(message *Message, extra *ExtraMessage) {
 	}
 
 	// 追加默认字段
-	message.AppName = ubt.AppName
-	message.AppVersion = ubt.AppVersion
+	message.AppName = ubt.options.AppName
+	message.AppVersion = ubt.options.AppVersion
 	message.SdkVersion = SdkVersion
 
 	messageText, err := json.Marshal(message)
@@ -159,20 +170,20 @@ func (ubt *UBT) base(message *Message, extra *ExtraMessage) {
 		return
 	}
 
-	if ubt.ci {
+	if ubt.options.ci {
 		ubt.messageText = string(messageText)
 	}
 
 	err = gout.
-		POST(ubt.UBTServer + "/logging/v2").
+		POST(ubt.options.UBTServer + "/logging/v2").
 		SetJSON(message).
-		Debug(ubt.DebugMode).
+		Debug(ubt.options.DebugMode).
 		BindBody(&ubt.resText).
 		Do()
 	if err != nil {
 		log.Println(err)
 	}
-	if ubt.ci {
+	if ubt.options.ci {
 		ubt.err = err
 	}
 }

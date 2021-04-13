@@ -1,4 +1,4 @@
-package ubt
+package UBT
 
 import (
 	"errors"
@@ -14,13 +14,13 @@ const testAppVersion = "0.1.0"
 var ubt *UBT
 
 func init()  {
-	ubt = &UBT{
+	ubt = Init(&ClientOptions{
 		UBTServer: "https://metrics-dev.spacecycle.cn",
 		AppName: testAppName,
 		AppVersion: testAppVersion,
 		ci: true,
 		DebugMode: true,
-	}
+	})
 }
 
 func TestUBT_Debug(t *testing.T) {

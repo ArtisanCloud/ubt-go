@@ -1,4 +1,4 @@
-package ubt
+package UBT
 
 const (
 	DEBUG    = "debug"
