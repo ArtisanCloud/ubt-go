@@ -14,6 +14,13 @@ const testAppVersion = "0.1.0"
 var ubt *UBT
 
 func init()  {
+	InitUBT()
+}
+
+func InitUBT() *UBT {
+	if ubt != nil {
+		return ubt
+	}
 	ubt = Init(&ClientOptions{
 		UBTServer: "https://metrics-dev.spacecycle.cn",
 		AppName: testAppName,
@@ -21,7 +28,10 @@ func init()  {
 		ci: true,
 		DebugMode: true,
 	})
+	return ubt
 }
+
+
 
 func TestUBT_Debug(t *testing.T) {
 	assertNew := assert.New(t)
