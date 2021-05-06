@@ -11,6 +11,11 @@ import (
 	"testing"
 )
 
+type FormData struct {
+	A int `json:"a" form:"a"`
+	B int `json:"b" form:"a"`
+}
+
 func setupRouter() *gin.Engine {
 	r := gin.Default()
 
@@ -22,7 +27,21 @@ func setupRouter() *gin.Engine {
 		c.String(200, "pong")
 	})
 	r.POST("/ping", func(c *gin.Context) {
-		c.String(200, "post pong")
+		formData := &FormData{}
+
+		//body, err := ioutil.ReadAll(c.Request.Body)
+		err := c.Bind(formData)
+		if err != nil {
+			c.JSON(400, gin.H{
+				"err": err,
+			})
+			return
+		}
+
+		c.JSON(200, gin.H{
+			"msg": "post pong",
+			"formData": formData,
+		})
 	})
 	return r
 }
@@ -72,7 +91,7 @@ func TestHTTPTrafficMiddleWareByPostFormData(t *testing.T)  {
 	assert.Contains(t, ubtReqMessageText, `"method":"POST"`)
 	assert.Contains(t, ubtReqMessageText, `"path":"/ping"`)
 	assert.Contains(t, ubtReqMessageText, `"postData":"a=1\u0026b=2"`)
-	assert.Contains(t, ubtResMessageText, `"data":"post pong"`)
+	assert.Contains(t, ubtResMessageText, `post pong`)
 
 	ubt.clear()
 }
@@ -81,17 +100,25 @@ func TestHTTPTrafficMiddleWareByPostJSON(t *testing.T)  {
 	router := setupRouter()
 	w := httptest.NewRecorder()
 	var jsonStr = []byte(`{"a": 1, "b": 2}`)
+
+
 	req, _ := http.NewRequest("POST", "/ping", bytes.NewBuffer(jsonStr))
 	req.Header.Set("Content-Type", "application/json")
 	router.ServeHTTP(w, req)
 
+
 	ubtReqMessageText := ubt.messageTextStacks[0]
 	ubtResMessageText := ubt.messageTextStacks[1]
 
+
 	assert.Contains(t, ubtReqMessageText, `"method":"POST"`)
 	assert.Contains(t, ubtReqMessageText, `"path":"/ping"`)
+	// ubt应该捕捉到了请求的数据
 	assert.Contains(t, ubtReqMessageText, `"postData":"{\"a\": 1, \"b\": 2}"`)
-	assert.Contains(t, ubtResMessageText, `"data":"post pong"`)
+
+	// ubt应该读取到了响应的数据
+	assert.Contains(t, ubtResMessageText, `\"formData\":{\"a\":1,\"b\":2}`)
+	assert.Contains(t, ubtResMessageText, `post pong`)
 
 	ubt.clear()
 }

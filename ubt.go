@@ -16,12 +16,6 @@ type Message struct {
 	LogLevel       string     `json:"logLevel,omitempty"`
 	Request        *ReqMessage `json:"req,omitempty"`
 	Response       *ResMessage `json:"res,omitempty"`
-	//Error *struct {
-	//	Code   int    `json:"code,omitempty"`   // 错误code
-	//	Stacks string `json:"stacks,omitempty"` // 错误堆栈
-	//	File   string `json:"file,omitempty"`   // 错误文件
-	//	Line   string `json:"line,omitempty"`   // 错误行
-	//} `json:"error,omitempty"`
 	Msg   string    `json:"msg,omitempty"`
 	Error *ErrorMsg `json:"error,omitempty"`
 	ExtraMessage
@@ -34,11 +28,11 @@ type ReqMessage struct {
 	Path      string `json:"path,omitempty"`       // 客户端请求路径
 	PostData  string `json:"postData,omitempty"`  // 客户端提交的参数，url query参数和data参数都在里面
 	Query     string `json:"query,omitempty"`      // 客户端查询的get query参数
-	RequestId string `json:"requestId,omitempty"` // 请求id，优先读取客户端生成的值。
 	Url       string `json:"url,omitempty"`        // 完整的url链接地址
 	Id        string `json:"id,omitempty"`
 	Api       string `json:"api,omitempty"`
 	Ua        string `json:"ua,omitempty"`
+	Headers   string `json:"headers,omitempty"`
 }
 
 type ResMessage struct {
@@ -62,7 +56,6 @@ type UBT struct {
 
 	resText string // ci模式 返回的字符串。
 	err     error  // ci专用
-
 	messageTextStacks []string
 	messageText       string // 要发送的消息内容，这个只是为了测试。
 }
@@ -71,6 +64,7 @@ type ClientOptions struct {
 	UBTServer  string
 	AppName    string
 	AppVersion string
+	IgnoreHeaders []string
 	systemInfo map[string]string
 	DebugMode  bool // debug模式
 	ci         bool // ci模式
@@ -137,7 +131,10 @@ func (ubt *UBT) Fatal(msg string, extra *ExtraMessage) {
 }
 
 type ErrorMsg struct {
-	Stacks string `json:"stacks"`
+	Code   int    `json:"code,omitempty"`   // 错误code
+	Stacks string `json:"stacks,omitempty"` // 错误堆栈
+	File   string `json:"file,omitempty"`   // 错误文件
+	Line   string `json:"line,omitempty"`   // 错误行
 }
 
 // SendError 错误发送。 如果需要捕获错误堆栈，那么则需要使用github.com/pkg/errors
