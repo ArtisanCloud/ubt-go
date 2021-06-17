@@ -8,7 +8,7 @@ import (
 	"testing"
 )
 
-const testAppName = "taishan-dev"
+const testAppName = "hushan-dev"
 const testAppVersion = "0.1.0"
 
 var ubt *UBT
@@ -22,7 +22,7 @@ func InitUBT() *UBT {
 		return ubt
 	}
 	ubt = Init(&ClientOptions{
-		UBTServer: "https://metrics-dev.spacecycle.cn",
+		UBTServer: "https://metrics-dev.spacecycle.com",
 		AppName: testAppName,
 		AppVersion: testAppVersion,
 		ci: true,
@@ -44,7 +44,9 @@ func TestUBT_Debug(t *testing.T) {
 			"appVersion":"%s",
 			"sdkVersion": "%s",
 			"msg": "hello, debug",
-			"logLevel":"debug"
+			"logLevel":"debug",
+			"serverAddr": "192.168.1.1",
+			"serverHostname": "hostname-xxx"
 		}
 	`, testAppName, testAppVersion, SdkVersion))
 	assertNew.Equal(ubt.err, nil)
@@ -61,7 +63,9 @@ func TestUBT_Debug(t *testing.T) {
 			"sdkVersion": "%s",
 			"msg": "hello, debug",
 			"module": "ubt.debug",
-			"logLevel":"debug"
+			"logLevel":"debug",
+			"serverAddr": "192.168.1.1",
+			"serverHostname": "hostname-xxx"
 		}
 	`, testAppName, testAppVersion, SdkVersion))
 	assertNew.Equal(ubt.err, nil)
@@ -87,7 +91,9 @@ func TestUBT_Debug(t *testing.T) {
 				"test2": "1"
 			},
 			"module": "ubt.debug",
-			"logLevel":"debug"
+			"logLevel":"debug",
+			"serverAddr": "192.168.1.1",
+			"serverHostname": "hostname-xxx"
 		}
 	`, testAppName, testAppVersion, SdkVersion))
 	assertNew.Equal(ubt.err, nil)
@@ -105,7 +111,9 @@ func TestUBT_Info(t *testing.T) {
 			"appVersion":"%s",
 			"sdkVersion": "%s",
 			"msg": "hello, info",
-			"logLevel":"info"
+			"logLevel":"info",
+			"serverAddr": "192.168.1.1",
+			"serverHostname": "hostname-xxx"
 		}
 	`, testAppName, testAppVersion, SdkVersion))
 	assertNew.Equal(ubt.err, nil)
@@ -123,7 +131,9 @@ func TestUBT_Warn(t *testing.T) {
 			"appVersion":"%s",
 			"sdkVersion": "%s",
 			"msg": "hello, warn",
-			"logLevel":"warn"
+			"logLevel":"warn",
+			"serverAddr": "192.168.1.1",
+			"serverHostname": "hostname-xxx"
 		}
 	`, testAppName, testAppVersion, SdkVersion))
 	assertNew.Equal(ubt.err, nil)
@@ -141,7 +151,9 @@ func TestUBT_Error(t *testing.T) {
 			"appVersion":"%s",
 			"sdkVersion": "%s",
 			"msg": "hello, error",
-			"logLevel":"error"
+			"logLevel":"error",
+			"serverAddr": "192.168.1.1",
+			"serverHostname": "hostname-xxx"
 		}
 	`, testAppName, testAppVersion, SdkVersion))
 	assertNew.Equal(ubt.err, nil)
@@ -159,7 +171,9 @@ func TestUBT_Critical(t *testing.T) {
 			"appVersion":"%s",
 			"sdkVersion": "%s",
 			"msg": "hello, critical",
-			"logLevel":"critical"
+			"logLevel":"critical",
+			"serverAddr": "192.168.1.1",
+			"serverHostname": "hostname-xxx"
 		}
 	`, testAppName, testAppVersion, SdkVersion))
 	assertNew.Equal(ubt.err, nil)
@@ -178,7 +192,9 @@ func TestUBT_Alert(t *testing.T) {
 			"appVersion":"%s",
 			"sdkVersion": "%s",
 			"msg": "hello, alert",
-			"logLevel":"alert"
+			"logLevel":"alert",
+			"serverAddr": "192.168.1.1",
+			"serverHostname": "hostname-xxx"
 		}
 	`, testAppName, testAppVersion, SdkVersion))
 	assertNew.Equal(ubt.err, nil)
@@ -196,7 +212,9 @@ func TestUBT_Fatal(t *testing.T) {
 			"appVersion":"%s",
 			"sdkVersion": "%s",
 			"msg": "hello, fatal",
-			"logLevel":"fatal"
+			"logLevel":"fatal",
+			"serverAddr": "192.168.1.1",
+			"serverHostname": "hostname-xxx"
 		}
 	`, testAppName, testAppVersion, SdkVersion))
 	assertNew.Equal(ubt.err, nil)

@@ -6,33 +6,36 @@ import (
 	"github.com/guonaihong/gout"
 	"github.com/pkg/errors"
 	"log"
+	"net"
+	"os"
+	"strings"
 )
 
 type Message struct {
-	AppName        string `json:"appName,omitempty"`
-	AppVersion     string `json:"appVersion,omitempty"`
-	serverHostname string
-	serverAddr     string
-	LogLevel       string     `json:"logLevel,omitempty"`
+	AppName        string      `json:"appName,omitempty"`
+	AppVersion     string      `json:"appVersion,omitempty"`
+	ServerHostname string      `json:"serverHostname,omitempty"`
+	ServerAddr     string      `json:"serverAddr,omitempty"`
+	LogLevel       string      `json:"logLevel,omitempty"`
 	Request        *ReqMessage `json:"req,omitempty"`
 	Response       *ResMessage `json:"res,omitempty"`
-	Msg   string    `json:"msg,omitempty"`
-	Error *ErrorMsg `json:"error,omitempty"`
+	Msg            string      `json:"msg,omitempty"`
+	Error          *ErrorMsg   `json:"error,omitempty"`
 	ExtraMessage
 	baseInfo
 }
 
 type ReqMessage struct {
-	Ip        string `json:"ip,omitempty"`         // 客户端的ip
-	Method    string `json:"method,omitempty"`     // 客户端请求方法。 "GET" | "POST"
-	Path      string `json:"path,omitempty"`       // 客户端请求路径
-	PostData  string `json:"postData,omitempty"`  // 客户端提交的参数，url query参数和data参数都在里面
-	Query     string `json:"query,omitempty"`      // 客户端查询的get query参数
-	Url       string `json:"url,omitempty"`        // 完整的url链接地址
-	Id        string `json:"id,omitempty"`
-	Api       string `json:"api,omitempty"`
-	Ua        string `json:"ua,omitempty"`
-	Headers   string `json:"headers,omitempty"`
+	Ip       string `json:"ip,omitempty"`       // 客户端的ip
+	Method   string `json:"method,omitempty"`   // 客户端请求方法。 "GET" | "POST"
+	Path     string `json:"path,omitempty"`     // 客户端请求路径
+	PostData string `json:"postData,omitempty"` // 客户端提交的参数，url query参数和data参数都在里面
+	Query    string `json:"query,omitempty"`    // 客户端查询的get query参数
+	Url      string `json:"url,omitempty"`      // 完整的url链接地址
+	Id       string `json:"id,omitempty"`
+	Api      string `json:"api,omitempty"`
+	Ua       string `json:"ua,omitempty"`
+	Headers  string `json:"headers,omitempty"`
 }
 
 type ResMessage struct {
@@ -54,20 +57,23 @@ type baseInfo struct {
 type UBT struct {
 	options *ClientOptions
 
-	resText string // ci模式 返回的字符串。
-	err     error  // ci专用
+	hostname string
+	addr     string
+
+	resText           string // ci模式 返回的字符串。
+	err               error  // ci专用
 	messageTextStacks []string
 	messageText       string // 要发送的消息内容，这个只是为了测试。
 }
 
 type ClientOptions struct {
-	UBTServer  string
-	AppName    string
-	AppVersion string
+	UBTServer     string
+	AppName       string
+	AppVersion    string
 	IgnoreHeaders []string
-	systemInfo map[string]string
-	DebugMode  bool // debug模式
-	ci         bool // ci模式
+	systemInfo    map[string]string
+	DebugMode     bool // debug模式
+	ci            bool // ci模式
 }
 
 func Init(options *ClientOptions) *UBT {
@@ -163,7 +169,7 @@ func (ubt *UBT) clear() {
 	ubt.messageTextStacks = []string{}
 }
 
-func (ubt *UBT) base(message *Message, extra *ExtraMessage) {
+func (ubt *UBT) base(m *Message, extra *ExtraMessage) {
 	fn := func() {
 		if ubt.options.ci {
 			ubt.err = nil
@@ -171,17 +177,18 @@ func (ubt *UBT) base(message *Message, extra *ExtraMessage) {
 
 		// 追加自定义业务字段和module字段
 		if extra != nil {
-			message.BusinessInfo = extra.BusinessInfo
-			message.Module = extra.Module
-			message.LogType = extra.LogType
+			m.BusinessInfo = extra.BusinessInfo
+			m.Module = extra.Module
+			m.LogType = extra.LogType
 		}
 
 		// 追加默认字段
-		message.AppName = ubt.options.AppName
-		message.AppVersion = ubt.options.AppVersion
-		message.SdkVersion = SdkVersion
+		m.AppName = ubt.options.AppName
+		m.AppVersion = ubt.options.AppVersion
+		m.SdkVersion = SdkVersion
+		m.ServerHostname, m.ServerAddr = ubt.getHostNameAddr()
 
-		messageText, err := json.Marshal(message)
+		messageText, err := json.Marshal(m)
 		if err != nil {
 			return
 		}
@@ -193,7 +200,7 @@ func (ubt *UBT) base(message *Message, extra *ExtraMessage) {
 
 		err = gout.
 			POST(ubt.options.UBTServer + "/logging/v2").
-			SetJSON(message).
+			SetJSON(m).
 			Debug(ubt.options.DebugMode).
 			BindBody(&ubt.resText).
 			Do()
@@ -211,4 +218,25 @@ func (ubt *UBT) base(message *Message, extra *ExtraMessage) {
 	} else {
 		go fn()
 	}
+}
+
+func (ubt *UBT) getHostNameAddr() (string, string) {
+	if ubt.options.ci {
+		return "hostname-xxx", "192.168.1.1"
+	}
+	if ubt.hostname != "" && ubt.addr != "" {
+		return ubt.hostname, ubt.addr
+	}
+	hostname, _ := os.Hostname()
+	addrs, _ := net.LookupIP(hostname)
+
+	addrStr := ""
+	for _, addr := range addrs {
+		if ipv4 := addr.To4(); ipv4 != nil {
+			fmt.Println("IPv4: ", ipv4)
+			addrStr = addrStr + " " + ipv4.String()
+		}
+	}
+
+	return hostname, strings.Trim(addrStr, " ")
 }

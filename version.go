@@ -1,4 +1,4 @@
 package UBT
 const (
-	SdkVersion = "1.0.0"
+	SdkVersion = "1.0.5"
 )
