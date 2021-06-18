@@ -220,23 +220,24 @@ func (ubt *UBT) base(m *Message, extra *ExtraMessage) {
 	}
 }
 
-func (ubt *UBT) getHostNameAddr() (string, string) {
+func (ubt *UBT) getHostNameAddr() (hostname , addr string) {
 	if ubt.options.ci {
 		return "hostname-xxx", "192.168.1.1"
 	}
 	if ubt.hostname != "" && ubt.addr != "" {
 		return ubt.hostname, ubt.addr
 	}
-	hostname, _ := os.Hostname()
+	hostname, _ = os.Hostname()
 	addrs, _ := net.LookupIP(hostname)
 
-	addrStr := ""
-	for _, addr := range addrs {
-		if ipv4 := addr.To4(); ipv4 != nil {
-			fmt.Println("IPv4: ", ipv4)
-			addrStr = addrStr + " " + ipv4.String()
+	addr = ""
+	for _, a := range addrs {
+		if ipv4 := a.To4(); ipv4 != nil {
+			addr = addr + " " + ipv4.String()
 		}
 	}
 
-	return hostname, strings.Trim(addrStr, " ")
+	ubt.hostname = hostname
+	ubt.addr = strings.Trim(addr, " ")
+	return ubt.hostname, ubt.addr
 }
