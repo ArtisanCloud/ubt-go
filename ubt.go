@@ -3,12 +3,13 @@ package UBT
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/guonaihong/gout"
-	"github.com/pkg/errors"
 	"log"
 	"net"
 	"os"
 	"strings"
+
+	"github.com/guonaihong/gout"
+	"github.com/pkg/errors"
 )
 
 type Message struct {
@@ -82,58 +83,58 @@ func Init(options *ClientOptions) *UBT {
 	}
 }
 
-func (ubt *UBT) Debug(msg string, extra *ExtraMessage) {
+func (ubt *UBT) Debug(msg string, extra ...*ExtraMessage) {
 	message := &Message{
 		Msg:      msg,
 		LogLevel: DEBUG,
 	}
-	ubt.base(message, extra)
+	ubt.base(message, extra...)
 }
 
-func (ubt *UBT) Info(msg string, extra *ExtraMessage) {
+func (ubt *UBT) Info(msg string, extra ...*ExtraMessage) {
 	message := &Message{
 		Msg:      msg,
 		LogLevel: INFO,
 	}
-	ubt.base(message, extra)
+	ubt.base(message, extra...)
 }
 
-func (ubt *UBT) Warn(msg string, extra *ExtraMessage) {
+func (ubt *UBT) Warn(msg string, extra ...*ExtraMessage) {
 	message := &Message{
 		Msg:      msg,
 		LogLevel: WARN,
 	}
-	ubt.base(message, extra)
+	ubt.base(message, extra...)
 }
 
-func (ubt *UBT) Error(msg string, extra *ExtraMessage) {
+func (ubt *UBT) Error(msg string, extra ...*ExtraMessage) {
 	message := &Message{
 		Msg:      msg,
 		LogLevel: ERROR,
 	}
-	ubt.base(message, extra)
+	ubt.base(message, extra...)
 }
 
-func (ubt *UBT) Critical(msg string, extra *ExtraMessage) {
+func (ubt *UBT) Critical(msg string, extra ...*ExtraMessage) {
 	message := &Message{
 		Msg:      msg,
 		LogLevel: CRITICAL,
 	}
-	ubt.base(message, extra)
+	ubt.base(message, extra...)
 }
-func (ubt *UBT) Alert(msg string, extra *ExtraMessage) {
+func (ubt *UBT) Alert(msg string, extra ...*ExtraMessage) {
 	message := &Message{
 		Msg:      msg,
 		LogLevel: ALERT,
 	}
-	ubt.base(message, extra)
+	ubt.base(message, extra...)
 }
-func (ubt *UBT) Fatal(msg string, extra *ExtraMessage) {
+func (ubt *UBT) Fatal(msg string, extra ...*ExtraMessage) {
 	message := &Message{
 		Msg:      msg,
 		LogLevel: FATAL,
 	}
-	ubt.base(message, extra)
+	ubt.base(message, extra...)
 }
 
 type ErrorMsg struct {
@@ -144,7 +145,7 @@ type ErrorMsg struct {
 }
 
 // SendError 错误发送。 如果需要捕获错误堆栈，那么则需要使用github.com/pkg/errors
-func (ubt *UBT) SendError(err error, extra *ExtraMessage) {
+func (ubt *UBT) SendError(err error, extra ...*ExtraMessage) {
 	errMsg := &ErrorMsg{
 		Stacks: "",
 	}
@@ -161,7 +162,7 @@ func (ubt *UBT) SendError(err error, extra *ExtraMessage) {
 		LogLevel: ERROR,
 		Msg:      err.Error(),
 		Error:    errMsg,
-	}, extra)
+	}, extra...)
 }
 
 func (ubt *UBT) clear() {
@@ -169,17 +170,23 @@ func (ubt *UBT) clear() {
 	ubt.messageTextStacks = []string{}
 }
 
-func (ubt *UBT) base(m *Message, extra *ExtraMessage) {
+func (ubt *UBT) base(m *Message, extra ...*ExtraMessage) {
 	fn := func() {
 		if ubt.options.ci {
 			ubt.err = nil
 		}
 
 		// 追加自定义业务字段和module字段
-		if extra != nil {
-			m.BusinessInfo = extra.BusinessInfo
-			m.Module = extra.Module
-			m.LogType = extra.LogType
+		if len(extra) > 0 && extra[0] != nil {
+			if extra[0].BusinessInfo != nil {
+				m.BusinessInfo = extra[0].BusinessInfo
+			}
+			if extra[0].Module != "" {
+				m.Module = extra[0].Module
+			}
+			if extra[0].LogType != "" {
+				m.LogType = extra[0].LogType
+			}
 		}
 
 		// 追加默认字段
@@ -220,7 +227,7 @@ func (ubt *UBT) base(m *Message, extra *ExtraMessage) {
 	}
 }
 
-func (ubt *UBT) getHostNameAddr() (hostname , addr string) {
+func (ubt *UBT) getHostNameAddr() (hostname, addr string) {
 	if ubt.options.ci {
 		return "hostname-xxx", "192.168.1.1"
 	}
